@@ -5,6 +5,7 @@ import { User, UserProfileForm } from "@/types/index"
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateProfile } from "@/api/ProfileAPI";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 type ProfileFormProps = {
     data: User
@@ -14,19 +15,25 @@ export default function ProfileForm({ data }: ProfileFormProps) {
     const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: data })
 
     const queryClient = useQueryClient();
+    const [loading, setLoading] = useState(false);
 
     const { mutate } = useMutation({
         mutationFn: updateProfile,
         onError: (error) => {
             toast.error(error.message);
+            setLoading(false);
         },
         onSuccess: () => {
             toast.success("Perfil actualizado exitosamente");
+            setLoading(false);
             queryClient.invalidateQueries({ queryKey: ["user"] });
         }
     });
 
-    const handleEditProfile = (formData: UserProfileForm) => mutate(formData);
+    const handleEditProfile = (formData: UserProfileForm) => {
+        setLoading(true);
+        mutate(formData);
+    }
 
     return (
         <>
@@ -75,7 +82,8 @@ export default function ProfileForm({ data }: ProfileFormProps) {
                             <ErrorMessage>{errors.email.message}</ErrorMessage>
                         )}
                     </div>
-                    <input className="bg-fuchsia-600 w-full p-3 text-white uppercase font-bold hover:bg-fuchsia-700 cursor-pointer transition-colors"
+                    <input className={`bg-fuchsia-600 w-full p-3 text-white uppercase font-bold transition-colors ${loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                        disabled={loading}
                         type="submit"
                         value='Guardar Cambios'
                     />

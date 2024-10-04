@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { createNote } from "@/api/NoteAPI";
 import { useLocation, useParams } from "react-router-dom";
+import { useState } from "react";
 
 function AddNoteForm() {
 
@@ -22,20 +23,23 @@ function AddNoteForm() {
     };
 
     const { formState: {errors}, handleSubmit, register, reset } = useForm({ defaultValues: initialValues });
-
+    const [loading, setLoading] = useState(false);
     const { mutate } = useMutation({
         mutationFn: createNote,
         onError: (error) => {
             toast.error(error.message);
+            setLoading(false);
         },
         onSuccess: () => {
             toast.success('Nota creada exitosamente');
+            setLoading(false);
             reset();
             queryClient.invalidateQueries({ queryKey: ['task', taskId] });
         }
     });
 
     const handleAddNote = (formData: NoteFormData) => {
+        setLoading(true);
         mutate({ projectId, taskId, formData });
     };
 
@@ -60,7 +64,8 @@ function AddNoteForm() {
                     errors.content && <ErrorMessage>{errors.content.message}</ErrorMessage>
                 }
             </div>
-            <input className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-2 text-white font-bold cursor-pointer"
+            <input className={`bg-fuchsia-600 w-full p-2 text-white font-bold ${loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                disabled={loading}
                 type="submit"
                 value="Crear Nota"
             />

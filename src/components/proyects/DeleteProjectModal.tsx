@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from "react-hook-form";
@@ -23,6 +23,8 @@ export default function DeleteProjectModal() {
 
     const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialValues })
 
+    const [loading, setLoading] = useState(false);
+
     const queryClient = useQueryClient();
 
     const checkPasswordMutation = useMutation({
@@ -45,6 +47,7 @@ export default function DeleteProjectModal() {
     });
 
     const handleForm = async (formData: CheckPasswordForm) => {
+        setLoading(true);
         await checkPasswordMutation.mutateAsync(formData);
         await deleteProjectMutation.mutateAsync(deleteProjectId);
     };
@@ -111,9 +114,9 @@ export default function DeleteProjectModal() {
                                         )}
                                     </div>
 
-                                    <input
+                                    <input className={`bg-fuchsia-600 w-full p-3 text-white font-black text-xl ${loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                                        disabled={loading}
                                         type="submit"
-                                        className=" bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3  text-white font-black  text-xl cursor-pointer"
                                         value='Eliminar Proyecto'
                                     />
                                 </form>

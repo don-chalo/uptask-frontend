@@ -6,6 +6,7 @@ import { updateProject } from "@/api/ProjectAPI";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProjectFormData } from "@/types/index";
 import ProjectForm from "./ProjectForm";
+import { useState } from "react";
 
 type EditProjectFormProps = {
     data: ProjectFormData,
@@ -24,23 +25,28 @@ function EditProjectForm({data, projectId}: EditProjectFormProps) {
         }
     });
 
+    const [loading, setLoading] = useState(false);
+
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
         mutationFn: updateProject,
         onError: () => {
             toast.error('Error al actualizar proyecto');
+            setLoading(false);
         },
         onSuccess: () => {
             // Se invalidan los datos cacheados para la query 'projects' y 'editProject'.
             queryClient.invalidateQueries({ queryKey: ['projects'] });
             queryClient.invalidateQueries({ queryKey: ['editProject', projectId] });
             toast.success('Proyecto actualizado correctamente');
+            setLoading(false);
             navigate('/');
         }
     });
 
     const handleForm = (formData: ProjectFormData) => {
+        setLoading(true);
         mutate({ projectId, formData });
     };
 
@@ -64,7 +70,8 @@ function EditProjectForm({data, projectId}: EditProjectFormProps) {
                 onSubmit={handleSubmit(handleForm)}
                 noValidate>
                 <ProjectForm register={register} errors={errors} />
-                <input className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3 text-white uppercase font-bold cursor-pointer transition-colors"
+                <input className={`bg-fuchsia-600 w-full p-3 text-white uppercase font-bold transition-colors ${loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                    disabled={loading}
                     type="submit"
                     value="Guardar cambios"
                 />

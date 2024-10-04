@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { createAccount } from "@/api/AuthAPI";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 export default function RegisterView() {
 
@@ -15,22 +16,28 @@ export default function RegisterView() {
         'password-confirmation': '',
     }
 
+    const [loading, setLoading] = useState(false);
     const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<UserRegistrationForm>({ defaultValues: initialValues });
 
     const { mutate } = useMutation({
         mutationFn: createAccount,
         onError: (error) => {
             toast.error(error.message);
+            setLoading(false);
         },
         onSuccess: (res) => {
             toast.success(res.message);
             reset();
+            setLoading(false);
         }
     });
-
+    
     const password = watch('password');
 
-    const handleRegister = (formData: UserRegistrationForm) => mutate(formData);
+    const handleRegister = (formData: UserRegistrationForm) => {
+        setLoading(true);
+        mutate(formData);
+    }
 
     return (
         <>
@@ -42,7 +49,7 @@ export default function RegisterView() {
 
             <form
                 onSubmit={handleSubmit(handleRegister)}
-                className="space-y-8 p-10  bg-white mt-10"
+                className="space-y-8 p-10 bg-white mt-10"
                 noValidate
             >
                 <div className="flex flex-col gap-5">
@@ -54,7 +61,7 @@ export default function RegisterView() {
                         id="email"
                         type="email"
                         placeholder="Email de Registro"
-                        className="w-full p-3  border-gray-300 border"
+                        className="w-full p-3 border-gray-300 border"
                         {...register("email", {
                             required: "El Email de registro es obligatorio",
                             pattern: {
@@ -69,13 +76,13 @@ export default function RegisterView() {
                 </div>
 
                 <div className="flex flex-col gap-5">
-                    <label
-                        className="font-normal text-2xl"
-                    >Nombre</label>
+                    <label className="font-normal text-2xl">
+                        Nombre
+                    </label>
                     <input
                         type="name"
                         placeholder="Nombre de Registro"
-                        className="w-full p-3  border-gray-300 border"
+                        className="w-full p-3 border-gray-300 border"
                         {...register("name", {
                             required: "El Nombre de usuario es obligatorio",
                         })}
@@ -86,14 +93,12 @@ export default function RegisterView() {
                 </div>
 
                 <div className="flex flex-col gap-5">
-                    <label
-                        className="font-normal text-2xl"
-                    >Password</label>
-
-                    <input
+                    <label className="font-normal text-2xl">
+                        Password
+                    </label>
+                    <input className="w-full p-3  border-gray-300 border"
                         type="password"
                         placeholder="Password de Registro"
-                        className="w-full p-3  border-gray-300 border"
                         {...register("password", {
                             required: "El Password es obligatorio",
                             minLength: {
@@ -108,15 +113,13 @@ export default function RegisterView() {
                 </div>
 
                 <div className="flex flex-col gap-5">
-                    <label
-                        className="font-normal text-2xl"
-                    >Repetir Password</label>
-
-                    <input
+                    <label className="font-normal text-2xl">
+                        Repetir Password
+                    </label>
+                    <input className="w-full p-3 border-gray-300 border"
                         id="password-confirmation"
                         type="password"
                         placeholder="Repite Password de Registro"
-                        className="w-full p-3  border-gray-300 border"
                         {...register("password-confirmation", {
                             required: "Repetir Password es obligatorio",
                             validate: value => value === password || 'Los Passwords no son iguales'
@@ -128,10 +131,10 @@ export default function RegisterView() {
                     )}
                 </div>
 
-                <input
+                <input className={`bg-fuchsia-600 w-full p-3 text-white font-black text-xl ${loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                    disabled={loading}
                     type="submit"
                     value='Registrarme'
-                    className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3  text-white font-black  text-xl cursor-pointer"
                 />
             </form>
             <nav className="mt-10 flex flex-col space-y-4">

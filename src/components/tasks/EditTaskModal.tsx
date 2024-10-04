@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -23,21 +23,26 @@ export default function EditTaskModal({ task, taskId }: EditTaskModal) {
     const { register, handleSubmit, reset, formState: { errors } } = useForm<TaskFormData>({defaultValues: { name: task.name, description: task.description }});
     const queryClient = useQueryClient();
 
+    const [loading, setLoading] = useState(false);
+
     const { mutate } = useMutation({
         mutationFn: updateTask,
         onError: () => {
             toast.error('Error al actualizar la tarea');
+            setLoading(false);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project', projectId] });
             queryClient.invalidateQueries({ queryKey: ['task', taskId] });
             toast.success('Tarea actualizada con éxito');
+            setLoading(false);
             reset();
             navigate(location.pathname, { replace: true });
         }
     });
 
     const handleEditTask = (formData: TaskFormData) => {
+        setLoading(true);
         mutate({ projectId, taskId, formData });
     };
     
@@ -79,17 +84,16 @@ export default function EditTaskModal({ task, taskId }: EditTaskModal) {
                                     <span className="text-fuchsia-600">este formulario</span>
                                 </p>
 
-                                <form
-                                    className="mt-10 space-y-3"
+                                <form className="mt-10 space-y-3"
                                     noValidate
                                     onSubmit={handleSubmit(handleEditTask)}
                                 >
 
                                     <TaskForm errors={errors} register={register} />
 
-                                    <input
+                                    <input className={`bg-fuchsia-600 w-full p-3 text-white font-black text-xl ${ loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                                        disabled={loading}
                                         type="submit"
-                                        className=" bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3  text-white font-black  text-xl cursor-pointer"
                                         value='Guardar Tarea'
                                     />
                                 </form>

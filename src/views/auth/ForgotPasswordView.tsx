@@ -5,26 +5,31 @@ import ErrorMessage from "@/components/ErrorMessage";
 import { useMutation } from "@tanstack/react-query";
 import { forgotPassowrd } from "@/api/AuthAPI";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 export default function ForgotPasswordView() {
     const initialValues: ForgotPasswordForm = {
         email: ''
     };
 
+    const [loading, setLoading] = useState(false);
     const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues: initialValues });
 
-      const { mutate } = useMutation({
+    const { mutate } = useMutation({
         mutationFn: forgotPassowrd,
         onError: (res) => {
             toast.error(res.message);
+            setLoading(false);
         },
         onSuccess: (res) => {
             toast.success(res.message);
             reset();
+            setLoading(false);
         }
-      })
+    });
 
     const handleForgotPassword = (formData: ForgotPasswordForm) => {
+        setLoading(true);
         mutate(formData);
     };
 
@@ -33,7 +38,7 @@ export default function ForgotPasswordView() {
             <h1 className="text-5xl font-black text-white">Reestablecer contraseña</h1>
             <p className="text-2xl font-light text-white mt-5">
                 ¿Olvidaste tu contraseña? coloca tu e-mail {''}
-                <span className=" text-fuchsia-500 font-bold"> y reestablécela</span>
+                <span className="text-fuchsia-500 font-bold"> y reestablécela</span>
             </p>
             <form className="space-y-8 p-10 mt-10 bg-white"
                 onSubmit={handleSubmit(handleForgotPassword)}
@@ -43,7 +48,7 @@ export default function ForgotPasswordView() {
                     <label className="font-normal text-2xl" htmlFor="email">
                         Email
                     </label>
-                    <input className="w-full p-3  border-gray-300 border"
+                    <input className="w-full p-3 border-gray-300 border"
                         id="email"
                         placeholder="Email de Registro"
                         type="email"
@@ -60,7 +65,8 @@ export default function ForgotPasswordView() {
                     )}
                 </div>
 
-                <input className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3  text-white font-black  text-xl cursor-pointer"
+                <input className={`bg-fuchsia-600 w-full p-3 text-white font-black text-xl ${loading ? ' opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                    disabled={loading}
                     type="submit"
                     value='Enviar Instrucciones'
                 />

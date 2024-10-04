@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Note } from "@/types/index";
 import { formatDate } from "@/utils/index";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -20,6 +20,8 @@ function NoteDetail({ note }: NoteDetailProps) {
     const taskId = queryParams.get("view-task")!;
     const projectId = params.projectId!;
 
+    const [loading, setLoading] = useState(false);
+
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
@@ -27,9 +29,11 @@ function NoteDetail({ note }: NoteDetailProps) {
         onSuccess: () => {
             toast.success("Nota eliminada exitosamente");
             queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+            setLoading(false);
         },
         onError: (error) => {
             toast.error(error.message);
+            setLoading(false);
         },
     });
 
@@ -47,9 +51,15 @@ function NoteDetail({ note }: NoteDetailProps) {
             </div>
             { 
                 canDelete &&
-                <button className="bg-red-400 hover:bg-red-500 p-2 text-xs text-white font-bold cursor-pointer transition-colors"
+                <button className={`bg-red-400 p-2 text-xs text-white font-bold transition-colors ${loading ? 'opacity-40 cursor-default' : 'hover:bg-red-500 cursor-pointer'}`}
+                    disabled={loading}
                     type="button"
-                    onClick={() => mutate({ noteId: note._id, taskId, projectId })}>
+                    onClick={
+                        () => {
+                            setLoading(true); 
+                            mutate({ noteId: note._id, taskId, projectId });
+                        }
+                    }>
                     Eliminar
                 </button>
             }

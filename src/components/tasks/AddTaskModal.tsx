@@ -1,5 +1,5 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import TaskForm from './TaskForm';
 import { TaskFormData } from '@/types/index';
@@ -21,22 +21,27 @@ export default function AddTaskModal() {
 
     const { register, handleSubmit, formState: { errors }, reset } = useForm({ defaultValues: initialValues});
 
+    const [loading, setLoading] = useState(false);
+
     const queryClient = useQueryClient();
 
     const { mutate } = useMutation({
         mutationFn: createTask,
         onError: (error) => {
             toast.error(error.message);
+            setLoading(false);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project', params.projectId] });
             toast.success('Tarea creada con éxito');
+            setLoading(false);
             reset();
             navigate(location.pathname, { replace: true });
         } 
     });
 
     const handleCreateTask = (formData: TaskFormData) => {
+        setLoading(true);
         mutate({projectId: params.projectId!, formData});
     };
 
@@ -80,7 +85,8 @@ export default function AddTaskModal() {
 
                                 <form className="mt-10 space-y-3" noValidate onSubmit={handleSubmit(handleCreateTask)}>
                                     <TaskForm errors={ errors } register={ register } />
-                                    <input className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3 text-white uppercase font-bold cursor-pointer transition-colors"
+                                    <input className={`bg-fuchsia-600 w-full p-3 text-white uppercase font-bold transition-colors ${loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                                        disabled={loading}
                                         type="submit"
                                         value="Guardar Tarea" />
                                 </form>

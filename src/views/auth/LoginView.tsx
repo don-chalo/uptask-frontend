@@ -1,33 +1,38 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import ErrorMessage from "@/components/ErrorMessage";
 import { UserLoginForm } from "@/types/index";
-import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { authenticateUser } from "@/api/AuthAPI";
-import { toast } from "react-toastify";
 
 export default function LoginView() {
     const initialValues: UserLoginForm = {
         email: '',
         password: '',
     }
+    const [ loading, setLoading ] = useState(false);
     const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialValues })
     const navigate = useNavigate();
     const { mutate } = useMutation({
         mutationFn: authenticateUser,
         onError: (err: any) => {
             toast.error(err.message);
+            setLoading(false);
         },
         onSuccess: (res) => {
             localStorage.setItem('AUTH_TOKEN', res.token);
             navigate('/');
+            setLoading(false);
         }
     });
 
-    const handleLogin = (formData: UserLoginForm) => {
+    const handleLogin = async (formData: UserLoginForm) => {
+        setLoading(true);
         mutate(formData);
-    }
+    };
 
     return (
         <>
@@ -78,7 +83,8 @@ export default function LoginView() {
                     )}
                 </div>
 
-                <input className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3 text-white font-black text-xl cursor-pointer"
+                <input className={`bg-fuchsia-600 w-full p-3 text-white font-black text-xl cursor-pointer ${loading ? ' opacity-40 cursor-default' : 'hover:bg-fuchsia-700'}`}
+                    disabled={loading}
                     type="submit"
                     value='Iniciar Sesión'
                 />

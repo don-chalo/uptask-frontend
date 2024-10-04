@@ -5,6 +5,7 @@ import ErrorMessage from "@/components/ErrorMessage";
 import { useMutation } from "@tanstack/react-query";
 import { requestConfirmationCode } from "@/api/AuthAPI";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 // export default function RegisterView() {
 export default function RequestNewCodeView() {
@@ -14,18 +15,22 @@ export default function RequestNewCodeView() {
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues: initialValues });
 
+    const [loading, setLoading] = useState(false);
     const { mutate } = useMutation({
         mutationFn: requestConfirmationCode,
         onError: (res) => {
             toast.error(res.message);
+            setLoading(false);
         },
         onSuccess: (res) => {
             toast.success(res.message);
             reset();
+            setLoading(false);
         }
     });
-
+    
     const handleRequestCode = (formData: RequestConfirmationCodeForm) => {
+        setLoading(true);
         mutate(formData);
     };
 
@@ -34,7 +39,7 @@ export default function RequestNewCodeView() {
             <h1 className="text-5xl font-black text-white">Solicitar Código de Confirmación</h1>
             <p className="text-2xl font-light text-white mt-5">
                 Coloca tu e-mail para recibir {''}
-                <span className=" text-fuchsia-500 font-bold"> un nuevo código</span>
+                <span className="text-fuchsia-500 font-bold"> un nuevo código</span>
             </p>
 
             <form className="space-y-8 p-10 rounded-lg bg-white mt-10"
@@ -62,7 +67,8 @@ export default function RequestNewCodeView() {
                     )}
                 </div>
 
-                <input className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3 rounded-lg text-white font-black  text-xl cursor-pointer"
+                <input className={`bg-fuchsia-600 w-full p-3 rounded-lg text-white font-black text-xl ${loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                    disabled={loading}
                     type="submit"
                     value='Enviar Código'
                 />

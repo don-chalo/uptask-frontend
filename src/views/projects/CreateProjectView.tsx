@@ -6,6 +6,7 @@ import { ProjectFormData } from "@/types/index";
 import ProjectForm from "@/components/proyects/ProjectForm";
 import { createProject } from "@/api/ProjectAPI";
 import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 
 function CreateProjectView() {
     const navigate = useNavigate();
@@ -16,19 +17,24 @@ function CreateProjectView() {
     };
 
     const { formState: { errors }, handleSubmit, register } = useForm({ defaultValues: initialValues });
-
+    const [loading, setLoading] = useState(false);
     const mutation = useMutation({
         mutationFn: createProject,
         onSuccess: () => {
             toast.success(`Proyecto creado con éxito`);
+            setLoading(false);
             navigate("/");
         },
         onError: (error) => {
             toast.error(error.message);
+            setLoading(false);
         }
     });
 
-    const handleForm = (formData: ProjectFormData) => mutation.mutate(formData);
+    const handleForm = (formData: ProjectFormData) => {
+        mutation.mutate(formData);
+        setLoading(true);
+    }
 
     return (
         <div className="max-w-3xl mx-auto">
@@ -50,7 +56,8 @@ function CreateProjectView() {
                 onSubmit={handleSubmit(handleForm)}
                 noValidate>
                 <ProjectForm register={register} errors={errors} />
-                <input className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3 text-white uppercase font-bold cursor-pointer transition-colors"
+                <input className={`bg-fuchsia-600 w-full p-3 text-white uppercase font-bold transition-colors ${loading ? 'opacity-40 cursor-default' : 'hover:bg-fuchsia-700 cursor-pointer'}`}
+                    disabled={loading}
                     type="submit"
                     value="Crear proyecto"
                 />

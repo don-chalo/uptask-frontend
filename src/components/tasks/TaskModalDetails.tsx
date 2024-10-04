@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Dialog, Transition } from '@headlessui/react';
@@ -28,20 +28,25 @@ export default function TaskModalDetails() {
         retry: false
     });
 
+    const [loading, setLoading] = useState(false);
+
     const queryClient = useQueryClient();
     const { mutate } = useMutation({
         mutationFn: updateStatus,
         onError: () => {
             toast.error('Error al actualizar el estado de la tarea', { toastId: 'error' });
+            setLoading(false);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['task', taskId] });
             queryClient.invalidateQueries({ queryKey: ['project', projectId] });
             toast.success('Estado de la tarea actualizado con éxito', { toastId:'success' });
+            setLoading(false);
         }
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLoading(true);
         mutate({ projectId, taskId, status: e.target.value as TaskStatus });
     };
 
@@ -111,6 +116,7 @@ export default function TaskModalDetails() {
                                     <div className='my-5 space-y-3'>
                                         <label className='font-bold'>Estado Actual: {statusTranslations[data.status]}</label>
                                         <select className="w-full p-3 bg-white border border-gray-300"
+                                            disabled={loading}
                                             defaultValue={data.status}
                                             onChange={handleChange}>
                                             {
